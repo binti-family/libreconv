@@ -2,7 +2,7 @@ require "libreconv/version"
 require "uri"
 require "net/http"
 require "tmpdir"
-require "spoon"
+require "posix-spawn"
 
 module Libreconv
 
@@ -27,12 +27,9 @@ module Libreconv
     end
 
     def convert
-      orig_stdout = $stdout.clone
-      $stdout.reopen File.new('/dev/null', 'w')
       Dir.mktmpdir { |target_path|
-        pid = Spoon.spawnp(@soffice_command, "--headless", "--convert-to", @convert_to, @source, "--outdir", target_path)
-        Process.waitpid(pid)
-        $stdout.reopen orig_stdout
+        child = POSIX::Spawn::Child.build(@soffice_command, "--headless", "--convert-to", @convert_to, @source, "--outdir", target_path, timeout: 10)
+        child.exec!
         target_tmp_file = "#{target_path}/#{File.basename(@source, ".*")}.#{File.basename(@convert_to, ":*")}"
         FileUtils.cp target_tmp_file, @target
       }
