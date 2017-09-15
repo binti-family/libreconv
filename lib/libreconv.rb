@@ -6,18 +6,19 @@ require "posix-spawn"
 
 module Libreconv
 
-  def self.convert(source, target, soffice_command = nil, convert_to = nil)
-    Converter.new(source, target, soffice_command, convert_to).convert
+  def self.convert(source, target, soffice_command: nil, convert_to: nil, timeout: 15)
+    Converter.new(source, target, soffice_command: soffice_command, convert_to: convert_to, timeout: timeout).convert
   end
 
   class Converter
     attr_accessor :soffice_command
 
-    def initialize(source, target, soffice_command = nil, convert_to = nil)
+    def initialize(source, target, soffice_command: nil, convert_to: nil, timeout: 15)
       @source = source
       @target = target
       @soffice_command = soffice_command
       @convert_to = convert_to || "pdf"
+      @timeout = timeout
       determine_soffice_command
       check_source_type
 
@@ -28,7 +29,7 @@ module Libreconv
 
     def convert
       Dir.mktmpdir { |target_path|
-        child = POSIX::Spawn::Child.build(@soffice_command, "--headless", "--convert-to", @convert_to, @source, "--outdir", target_path, timeout: 10)
+        child = POSIX::Spawn::Child.build(@soffice_command, "--headless", "--convert-to", @convert_to, @source, "--outdir", target_path, timeout: @timeout)
         child.exec!
         target_tmp_file = "#{target_path}/#{File.basename(@source, ".*")}.#{File.basename(@convert_to, ":*")}"
         FileUtils.cp target_tmp_file, @target

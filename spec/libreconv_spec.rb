@@ -23,7 +23,7 @@ describe Libreconv do
   describe Libreconv::Converter do
     describe "#new" do
       it "should raise error if soffice command does not exists" do
-        expect { Libreconv::Converter.new(@doc_file, "/target", "/Whatever/soffice") }.to raise_error(IOError)
+        expect { Libreconv::Converter.new(@doc_file, "/target", soffice_command: "/Whatever/soffice") }.to raise_error(IOError)
       end
 
       it "should raise error if source does not exists" do
@@ -78,7 +78,7 @@ describe Libreconv do
     describe "#soffice_command" do
       it "should return the user specified command path" do
         cmd = file_path("soffice") # just faking that the command is present here
-        converter = Libreconv::Converter.new(@doc_file, "/target", cmd)
+        converter = Libreconv::Converter.new(@doc_file, "/target", soffice_command: cmd)
         expect(converter.soffice_command).to eq cmd
       end
 
